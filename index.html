@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💐 Thiệp 20/10 — Tặng Một Nửa Thế Giới 💐</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --pink1:#ffdde6;
+      --pink2:#ffc0cb;
+      --accent:#e91e63;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Quicksand',sans-serif;background:linear-gradient(135deg,var(--pink1),#ffd1df 40%, #fce9ef 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;color:#333}
+    .scene{position:relative;width:100%;max-width:980px;padding:24px;display:flex;gap:24px;align-items:center;justify-content:center}
+    .card{
+      width:420px;background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,248,251,0.95));border-radius:24px;padding:36px;box-shadow:0 18px 40px rgba(233,30,99,0.12);position:relative;z-index:5;
+      text-align:center;backdrop-filter:blur(6px);
+      animation:float 4s ease-in-out infinite;
+    }
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    h1{font-family:'Dancing Script',cursive;color:var(--accent);font-size:44px;margin:0 0 8px}
+    .msg{font-size:16px;line-height:1.7;color:#4b2b2b;margin-bottom:18px}
+    .controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    button.btn{background:linear-gradient(90deg,var(--accent),#ff6b81);color:white;border:0;padding:10px 16px;border-radius:999px;font-weight:700;cursor:pointer;box-shadow:0 10px 22px rgba(233,30,99,0.12);transition:transform .18s}
+    button.btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(233,30,99,0.12);box-shadow:none}
+    button.btn:hover{transform:translateY(-4px)}
+    /* hearts */
+    .heart{position:absolute;top:-10vh;font-size:22px;pointer-events:none;animation:fall linear forwards;z-index:3}
+    @keyframes fall{from{transform:translateY(-10vh) rotate(0deg);opacity:1}to{transform:translateY(110vh) rotate(360deg);opacity:0}}
+    /* canvas fireworks */
+    canvas#fireworks{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1}
+    /* music button + title */
+    #music-btn{position:fixed;right:22px;bottom:22px;width:60px;height:60px;border-radius:50%;border:0;background:linear-gradient(180deg,var(--accent),#ff6b81);color:#fff;font-size:22px;cursor:pointer;z-index:20;box-shadow:0 12px 30px rgba(233,30,99,0.18)}
+    #song-title{position:fixed;right:22px;bottom:100px;background:rgba(255,255,255,0.9);padding:8px 14px;border-radius:18px;color:var(--accent);font-weight:700;box-shadow:0 8px 20px rgba(0,0,0,0.06);opacity:0;transition:opacity .6s;z-index:20}
+    /* responsive */
+    @media (max-width:760px){
+      .scene{padding:12px;flex-direction:column}
+      .card{width:calc(100% - 48px);max-width:560px;padding:28px}
+    }
+    /* small helper */
+    .note{font-size:13px;color:#7a5561;margin-top:12px}
+  </style>
+</head>
+<body>
+  <canvas id="fireworks" aria-hidden="true"></canvas>
+
+  <main class="scene" role="main" aria-label="Thiệp chúc mừng 20/10">
+    <section class="card" id="card">
+      <h1>💐 Chúc mừng 20/10</h1>
+      <div class="msg" id="message">
+        Hôm nay, thế giới nhuộm màu hoa — dành trọn một nụ cười cho những người phụ nữ kiên cường, dịu dàng và đầy yêu thương.  
+        <br><br>
+        Mong bạn luôn giữ được sức mạnh như biển, mềm mại như hoa, và nhận thật nhiều yêu thương như bạn xứng đáng.
+      </div>
+
+      <div class="controls" aria-hidden="false">
+        <button class="btn" id="shareBtn" title="Chia sẻ thiệp">📤 Chia sẻ</button>
+        <button class="btn" id="saveBtn" title="Tải ảnh thiệp">⬇ Tải ảnh</button>
+        <button class="btn" id="copyBtn" title="Sao chép lời chúc">📋 Sao chép</button>
+      </div>
+
+      <div class="note">Chạm hoặc bấm nút 🎵 để nhạc nền bật lên — trải nghiệm sẽ còn "đã" hơn 🌸</div>
+      <strong>From Trung Anh with love ❤️</strong>
+    </section>
+  </main>
+
+  <button id="music-btn" aria-label="Phát / tạm nhạc">🎵</button>
+  <div id="song-title" aria-hidden="true">🎶 Và Thế Giới Đã Mất Đi Một Người Cô Đơn</div>
+
+  <!-- local audio file (đặt cùng thư mục với index.html) -->
+  <audio id="bg-music" preload="auto" loop>
+    <source src="va-the-gioi-da-mat-di-mot-nguoi-co-don.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script>
+    // ----------------------
+    // Hearts (mưa tim)
+    // ----------------------
+    function spawnHeart(){
+      const el = document.createElement('div');
+      el.className = 'heart';
+      el.innerText = '💖';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.fontSize = (12 + Math.random()*28) + 'px';
+      el.style.animationDuration = (3 + Math.random()*4) + 's';
+      document.body.appendChild(el);
+      setTimeout(()=> el.remove(), 9000);
+    }
+    const heartTimer = setInterval(spawnHeart, 260);
+
+    // ----------------------
+    // Fireworks (canvas)
+    // ----------------------
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = innerWidth;
+    let H = canvas.height = innerHeight;
+    window.addEventListener('resize', ()=>{ W = canvas.width = innerWidth; H = canvas.height = innerHeight; });
+
+    const particles = [];
+    function Particle(x,y,dx,dy,color,life){
+      this.x=x;this.y=y;this.vx=dx;this.vy=dy;this.color=color;this.life=life;this.age=0;this.r=1+Math.random()*2;
+      this.update = function(dt){
+        this.x += this.vx*dt; this.y += this.vy*dt; this.vy += 30*dt; this.age += dt; this.r *= 0.995;
+      };
+      this.draw = function(ctx){
+        ctx.globalAlpha = Math.max(0, 1 - this.age/this.life);
+        ctx.fillStyle = this.color;
+        ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      };
+    }
+
+    function explode(x,y){
+      const hue = Math.floor(Math.random()*360);
+      const n = 30 + Math.floor(Math.random()*40);
+      for(let i=0;i<n;i++){
+        const a = Math.random()*Math.PI*2;
+        const s = 50 + Math.random()*240;
+        const vx = Math.cos(a)*s;
+        const vy = Math.sin(a)*s;
+        const color = `hsl(${hue} ${50+Math.random()*40}% ${45+Math.random()*15}%)`;
+        particles.push(new Particle(x,y,vx,vy,color, 0.8 + Math.random()*1.6));
+      }
+    }
+
+    let last=performance.now();
+    function loop(now){
+      const dt = Math.min(0.04, (now-last)/1000); last = now;
+      ctx.fillStyle = 'rgba(6,6,8,0.12)';
+      ctx.fillRect(0,0,W,H);
+      for(let i=particles.length-1;i>=0;i--){
+        const p=particles[i];
+        p.update(dt);
+        p.draw(ctx);
+        if(p.age>p.life) particles.splice(i,1);
+      }
+      requestAnimationFrame(loop);
+    }
+    loop(performance.now());
+    // random explosions
+    setInterval(()=> explode(Math.random()*W, Math.random()*H*0.5), 1400);
+    // click to explode
+    canvas.addEventListener('click', (e)=>{
+      const rect=canvas.getBoundingClientRect();
+      explode(e.clientX-rect.left, e.clientY-rect.top);
+    });
+
+    // ----------------------
+    // Share / copy / download
+    // ----------------------
+    const shareBtn = document.getElementById('shareBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const messageEl = document.getElementById('message');
+    shareBtn.addEventListener('click', async ()=>{
+      const shareData = { title: 'Thiệp 20/10 💐', text: messageEl.innerText.trim(), url: location.href };
+      if(navigator.share){ try { await navigator.share(shareData); } catch(e){} }
+      else { try { await navigator.clipboard.writeText(messageEl.innerText.trim()); alert('Lời chúc đã được sao chép — dán vào ứng dụng chat để chia sẻ.'); } catch(e){ alert('Trình duyệt không hỗ trợ chia sẻ tự động.'); } }
+    });
+    copyBtn.addEventListener('click', async ()=>{
+      try { await navigator.clipboard.writeText(messageEl.innerText.trim()); alert('Đã sao chép lời chúc!'); } catch(e){ prompt('Sao chép thủ công:', messageEl.innerText.trim()); }
+    });
+
+    function inlineStyles(el){
+      const all = el.querySelectorAll('*');
+      const nodes = [el,...all];
+      nodes.forEach(n=>{
+        try{
+          const cs = getComputedStyle(n);
+          let s='';
+          for(let i=0;i<cs.length;i++){ const prop = cs[i]; s += `${prop}:${cs.getPropertyValue(prop)};`; }
+          n.setAttribute('style', s);
+        }catch(e){}
+      });
+    }
+
+    // ----------------------
+    // Music control + autoplay after first interaction
+    // ----------------------
+    const music = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('music-btn');
+    const songTitle = document.getElementById('song-title');
+    let playing = true;
+    let fadeTimer = null;
+
+    // ensure starting volume 0 for fade-in
+    try{ music.volume = 0; 
+    music.addEventListener('loadedmetadata',()=>{ music.currentTime=41; });
+    }catch(e){}
+
+    function fadeInAndShow(){
+      clearInterval(fadeTimer);
+      fadeTimer = setInterval(()=> {
+        if(music.volume < 0.95) music.volume = Math.min(1, music.volume + 0.05);
+        else clearInterval(fadeTimer);
+      }, 120);
+      songTitle.style.opacity = 1;
+    }
+    function fadeOutAndPause(){
+      clearInterval(fadeTimer);
+      fadeTimer = setInterval(()=> {
+        if(music.volume > 0.05) music.volume = Math.max(0, music.volume - 0.06);
+        else { clearInterval(fadeTimer); music.pause(); playing = false; musicBtn.textContent = '🎵'; songTitle.style.opacity = 0; }
+      }, 100);
+    }
+
+    // Play on first interaction (to satisfy autoplay policies)
+    function tryStartOnFirstInteraction(){
+      const once = ()=> {
+        if(!playing){
+          music.play().then(()=>{
+            playing = true;
+            musicBtn.textContent = '⏸️';
+            fadeInAndShow();
+          }).catch(()=>{/* cannot autoplay even after interaction—user must click button */});
+        }
+        window.removeEventListener('click', once);
+        window.removeEventListener('touchstart', once);
+      };
+      window.addEventListener('click', once, {passive:true});
+      window.addEventListener('touchstart', once, {passive:true});
+    }
+    tryStartOnFirstInteraction();
+
+    // Music button toggles with fade
+    musicBtn.addEventListener('click', ()=>{
+      if(!playing){
+        music.play().then(()=>{
+          playing = true;
+          musicBtn.textContent = '⏸️';
+          fadeInAndShow();
+        }).catch(err=>{
+          console.warn('Play blocked:', err);
+          alert('Trình duyệt chặn phát tự động — hãy tương tác (bấm) thêm lần nữa hoặc kiểm tra quyền âm thanh.');
+        });
+      } else {
+        fadeOutAndPause();
+      }
+    });
+
+    // Optional: keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'm') musicBtn.click();
+      if(e.key === 'f') canvas.click();
+    });
+
+    // Accessibility: announce when music can't load
+    music.addEventListener('error', ()=> {
+      console.error('Không thể tải file nhạc. Kiểm tra tên file và đặt file MP3 cùng thư mục với index.html');
+      // show small alert once
+      if(!sessionStorage.getItem('audioErrorShown')){
+        alert('Không thể tải file nhạc. Vui lòng đảm bảo file MP3 nằm cùng thư mục với file HTML và có tên chính xác.');
+        sessionStorage.setItem('audioErrorShown','1');
+      }
+    });
+
+    // clean up on unload
+    window.addEventListener('beforeunload', ()=> {
+      clearInterval(heartTimer);
+    });
+
+    // ✅ Tải ảnh thiệp (chụp phần thiệp, không dính nền)
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const card = document.getElementById('card');
+  html2canvas(card, {
+    backgroundColor: null,
+    scale: 2 // ảnh rõ nét gấp đôi
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'thiep_20_10.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+});
+  </script>
+</body>
+</html>
