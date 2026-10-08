@@ -776,7 +776,7 @@
   <button class="mbtn" id="mbtn" aria-label="Bật hoặc tắt nhạc"><i></i><i></i><i></i><i></i></button>
 
   <section id="intro">
-    <h1>Có một lá thư gửi đến những người phụ nữ</h1>
+    <h1>Có một lá thư gửi đến BẠN</h1>
     <div class="env" id="env" aria-hidden="true">
       <div class="back"></div>
       <div class="mini">20/10</div>
@@ -800,8 +800,7 @@
       <p id="msg"></p>
       <p class="sign" id="sign">Với tất cả yêu thương 💐</p>
       <div class="actions" id="actions">
-        <button class="btn alt" id="burstBtn">Gửi thêm yêu thương</button>
-        <button class="btn ghost" id="againBtn">Viết lại</button>
+        <button class="btn alt" id="againBtn">Viết lại</button>
       </div>
     </div>
   </main>
@@ -1002,10 +1001,6 @@ Mong rằng hôm nay, và cả những ngày sau, bạn luôn được yêu thư
       }
 
       $('openBtn').addEventListener('click', openCard);
-      $('burstBtn').addEventListener('click', e => {
-        const r = e.currentTarget.getBoundingClientRect();
-        burstPetals(r.left + r.width / 2, r.top, 70); hearts(r.left + r.width / 2, r.top); show(5);
-      });
       $('againBtn').addEventListener('click', reset);
       $('card').addEventListener('pointerdown', e => { if (!e.target.closest('button')) { burstPetals(e.clientX, e.clientY, 14); firework(e.clientX, e.clientY); } });
 
