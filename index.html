@@ -772,7 +772,7 @@
   <div class="glow a"></div>
   <div class="glow b"></div>
   <canvas id="fx"></canvas>
-  <div id="yt"></div>
+  <audio id="bgMusic" src="cash%20cash.mp3" preload="auto" loop></audio>
   <button class="mbtn" id="mbtn" aria-label="Bật hoặc tắt nhạc"><i></i><i></i><i></i><i></i></button>
 
   <section id="intro">
@@ -904,53 +904,34 @@
         }
       });
 
-      /* ---------- Nhạc YouTube ---------- */
-      // Luôn dùng đúng video ID đã chọn; không lấy nhạc từ tham số URL của trang.
-      const vid = YOUTUBE_VIDEO_ID;
-      let player = null, apiReady = false, playerReady = false, wantPlay = false;
+      /* ---------- Nhạc MP3 cục bộ ---------- */
+      // Đặt file "cash cash.mp3" cùng thư mục với file HTML.
+      const audio = $('bgMusic');
       const mbtn = $('mbtn');
-      const setOn = on => { mbtn.classList.toggle('on', on); if (on) mbtn.classList.remove('hint'); };
+      audio.volume = 0.85;
+      audio.loop = true;
+      mbtn.classList.add('show');
 
-      function makePlayer() {
-        if (!vid || player) return;
-        player = new YT.Player('yt', {
-          width: '2', height: '2', videoId: vid,
-          playerVars: { autoplay: 1, controls: 0, loop: 1, playlist: vid, playsinline: 1, rel: 0, modestbranding: 1, start: 0 },
-          events: {
-            onReady: e => {
-              playerReady = true;
-              e.target.setVolume(85);
-              if (wantPlay) e.target.playVideo();
-              setTimeout(() => { if (e.target.getPlayerState() !== 1) mbtn.classList.add('hint'); }, 2500);
-            },
-            onStateChange: e => setOn(e.data === 1),
-            onAutoplayBlocked: () => mbtn.classList.add('hint')
-          }
-        });
-      }
-      if (vid) {
-        mbtn.classList.add('show');
-        const s = document.createElement('script');
-        s.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(s);
-        window.onYouTubeIframeAPIReady = () => {
-          apiReady = true;
-          if (wantPlay && !player) makePlayer();
-        };
-      }
+      const setOn = on => {
+        mbtn.classList.toggle('on', on);
+        if (on) mbtn.classList.remove('hint');
+      };
+      audio.addEventListener('play', () => setOn(true));
+      audio.addEventListener('pause', () => setOn(false));
+      audio.addEventListener('ended', () => setOn(false));
+      audio.addEventListener('error', () => mbtn.classList.add('hint'));
+
       function startMusic(restart = false) {
-        if (!vid) return;
-        wantPlay = true;
-        if (playerReady && player) {
-          if (restart) player.loadVideoById({ videoId: vid, startSeconds: 0 });
-          else player.playVideo();
-        } else if (apiReady && !player) {
-          makePlayer();
+        if (restart) audio.currentTime = 0;
+        const result = audio.play();
+        if (result && typeof result.catch === 'function') {
+          result.catch(() => mbtn.classList.add('hint'));
         }
       }
+
       mbtn.addEventListener('click', () => {
-        if (!playerReady || !player) { startMusic(); return; }
-        player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo();
+        if (audio.paused) startMusic();
+        else audio.pause();
       });
 
       /* ---------- Lời chúc ---------- */
